@@ -16,8 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Initialize subscription provider
     Provider.of<SubscriptionProvider>(context, listen: false).initialize();
-    // Load documents
-    Provider.of<DocumentProvider>(context, listen: false).loadDocuments();
+    // Initialize document provider (listens to Firestore stream)
+    Provider.of<DocumentProvider>(context, listen: false).initialize();
   }
 
   Future<void> _openCamera() async {
