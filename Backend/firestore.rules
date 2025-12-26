@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isPremium(userId) {
+      let userData = get(/databases/$(database)/documents/users/$(userId)).data;
+      return userData.isPremium == true &&
+             userData.subscriptionExpires > request.time;
+    }
+
+    function hasScansRemaining(userId) {
+      let userData = get(/databases/$(database)/documents/users/$(userId)).data;
+      return userData.scansThisMonth < userData.scanLimit;
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+
+    match /users/{userId} {
+      // Users can only read their own data
+      allow read: if isOwner(userId);
+
+      // Users CANNOT write directly - only Cloud Functions can
+      // This prevents scan limit manipulation
+      allow write: if false;
+    }
+
+    // ============================================
+    // DOCUMENTS COLLECTION
+    // ============================================
+
+    match /users/{userId}/documents/{documentId} {
+      // Users can read their own documents
+      allow read: if isOwner(userId);
+
+      // Users can create documents ONLY if they have scans remaining
+      allow create: if isOwner(userId) &&
+                       (isPremium(userId) || hasScansRemaining(userId));
+
+      // Users can update/delete their own documents
+      allow update, delete: if isOwner(userId);
+    }
+
+    // ============================================
+    // RATE LIMITS COLLECTION (Cloud Functions only)
+    // ============================================
+
+    match /rateLimits/{userId}/{document=**} {
+      allow read, write: if false; // Cloud Functions only
+    }
+  }
+}
