@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/subscription_provider.dart';
 import '../providers/document_provider.dart';
+import 'camera_screen.dart';
+import 'premium_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,9 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openCamera() async {
-    // TODO: Implement camera screen navigation
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Camera feature coming soon!')),
+    // Navigate to camera screen
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CameraScreen(),
+      ),
     );
   }
 
@@ -72,9 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (!subscriptionProvider.isPremium)
             GestureDetector(
               onTap: () {
-                // TODO: Navigate to premium screen
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Premium screen coming soon!')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PremiumScreen(),
+                  ),
                 );
               },
               child: Container(
